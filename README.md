@@ -29,7 +29,7 @@ Este ejercicio busca no solo familiarizar a los estudiantes con el manejo de dat
 
 ---
 
-# Hackatón de Bioinformática: Predicción de Recaída en Cáncer de Próstata
+# Hackatón de bioinformática: predicción de recaída en cáncer de próstata
 
 ## datos
 Se pueden descargar como `.csv` del siguiente link:
