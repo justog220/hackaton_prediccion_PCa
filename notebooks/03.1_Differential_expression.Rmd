@@ -1,0 +1,93 @@
+
+```{r}
+# Imports
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("limma")
+
+library(limma)
+library(readr)
+```
+# Loading data
+
+```{r}
+data <- read_csv("../data/interim/data_full.csv")
+```
+# Cleaning of not necessary columns
+
+```{r}
+clinical <- data[, c("grado_histologico", "cohorte")]
+data <- data[, !(colnames(data) %in% c("cohorte", "grado_histologico"))]
+```
+
+
+```{r}
+head(data)
+```
+
+```{r}
+expr <- as.data.frame(data[, !(colnames(data) %in% c("sample_id", "relapse"))])
+rownames(expr) <- data$sample_id
+meta <- data[, "relapse", drop = FALSE]
+meta$relapse <- as.factor(meta$relapse)
+```
+
+# Filtro el 10% con más baja expresión
+```{r}
+gene_mean <- colMeans(expr)
+threshold <- quantile(gene_mean, 0.1)
+expr <- expr[, gene_mean > threshold]
+```
+
+
+```{r}
+# Creo el diseño de limma
+design <- model.matrix(~ relapse, data = meta)
+```
+
+```{r}
+head(design)
+```
+
+```{r}
+fit <- lmFit(t(expr), design)   # transponemos porque genes en columnas
+fit <- eBayes(fit)
+```
+
+```{r}
+results <- topTable(fit, coef = "relapse1", number = Inf)
+head(results)
+```
+
+# Obtengo los 100 genes más diferenciales
+
+```{r}
+results <- topTable(fit, coef = "relapse1", number = Inf)
+
+top_genes <- head(results[order(results$adj.P.Val), ], 100)
+selected_gene_names <- rownames(top_genes)
+
+```
+
+
+```{r}
+X_ml <- expr[, selected_gene_names]
+y_ml <- meta$relapse
+```
+
+# Preparo dataset final
+
+```{r}
+# Extraigo columnas con genes diferencialmente expresados
+X_ml <- expr[, selected_gene_names]
+
+# Agrego datos clínicos
+X_ml$relapse <- meta$relapse
+X_ml$grado_histologico <- clinical$grado_histologico
+X_ml$cohorte <- clinical$cohorte
+
+
+write.csv(X_ml, "../data/interim/feature_selection/expr_top100_genes.csv", row.names = TRUE)
+```
+

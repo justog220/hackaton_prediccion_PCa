@@ -1,0 +1,14 @@
+name: hackaton-pca
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+    - numpy
+    - pandas
+    - scikit-learn
+    - matplotlib
+    - seaborn
+    - plotly
+    - ipykernel
+    - kneed
+    - xgboost
